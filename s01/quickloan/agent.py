@@ -39,9 +39,11 @@ from .state import QuickLoanState
 # ---------------------------------------------------------------------------
 
 def build_graph():
-    """Build and compile the QuickLoan LangGraph graph."""
-    raise NotImplementedError("TODO 5: implement build_graph() in quickloan/agent.py")
-
+    builder = StateGraph(QuickLoanState)
+    builder.add_node("respond", respond)
+    builder.set_entry_point("respond")
+    builder.add_edge("respond", END)
+    return builder.compile()
 
 # Module-level graph instance required by langgraph.json for LangGraph Studio.
 # run() uses this directly rather than building a second copy.

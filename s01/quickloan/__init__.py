@@ -9,6 +9,9 @@ import os
 
 os.environ.setdefault("HF_HUB_VERBOSITY", "error")
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # ---------------------------------------------------------------------------
 # TODO 1 of 5 -- Environment setup
 # ---------------------------------------------------------------------------

@@ -1,0 +1,215 @@
+thread_id,checkpoint_ns,checkpoint_id,parent_checkpoint_id,type,checkpoint,metadata
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-4f20-60c4-bfff-c8a5700b6d1a,NULL,msgpack,��v�ts� 2026-07-12T01:16:11.570131+00:00�id�$1f17d8f4-4f20-60c4-bfff-c8a5700b6d1a�channel_values��__start__��customer_message�Home loan�response��channel_versions��__start__�400000000000000000000000000000001.0.27584519426114595�versions_seen��__input__��updated_channels��__start__,"{""source"": ""input"", ""step"": -1, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-4f2f-6d5a-8000-c1527dcc1225,1f17d8f4-4f20-60c4-bfff-c8a5700b6d1a,msgpack,��v�ts� 2026-07-12T01:16:11.576598+00:00�id�$1f17d8f4-4f2f-6d5a-8000-c1527dcc1225�channel_values��customer_message�Home loan�response��branch:to:respond��channel_versions��__start__�300000000000000000000000000000002.0.6353114410964813�customer_message�300000000000000000000000000000002.0.6353114410964813�response�300000000000000000000000000000002.0.6353114410964813�branch:to:respond�300000000000000000000000000000002.0.6353114410964813�versions_seen��__input__��__start__��__start__�400000000000000000000000000000001.0.27584519426114595�updated_channels��branch:to:respond�customer_message�response,"{""source"": ""loop"", ""step"": 0, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-56a9-6fe1-8001-e6b84e87f597,1f17d8f4-4f2f-6d5a-8000-c1527dcc1225,msgpack,"��v�ts� 2026-07-12T01:16:12.360664+00:00�id�$1f17d8f4-56a9-6fe1-8001-e6b84e87f597�channel_values��customer_message�Home loan�response��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India�channel_versions��__start__�300000000000000000000000000000002.0.6353114410964813�customer_message�300000000000000000000000000000002.0.6353114410964813�response�300000000000000000000000000000003.0.5326123609445023�branch:to:respond�300000000000000000000000000000003.0.5326123609445023�history�300000000000000000000000000000003.0.5326123609445023�versions_seen��__input__��__start__��__start__�400000000000000000000000000000001.0.27584519426114595�respond��branch:to:respond�300000000000000000000000000000002.0.6353114410964813�updated_channels��history�response","{""source"": ""loop"", ""step"": 1, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-c8a8-6e2c-8002-8f80ac6b61b3,1f17d8f4-56a9-6fe1-8001-e6b84e87f597,msgpack,"��v�ts� 2026-07-12T01:16:24.313962+00:00�id�$1f17d8f4-c8a8-6e2c-8002-8f80ac6b61b3�channel_values��customer_message�Home loan�response��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India�__start__��customer_message�my salry is 98000�response��channel_versions��__start__�300000000000000000000000000000004.0.7950526324212449�customer_message�300000000000000000000000000000002.0.6353114410964813�response�300000000000000000000000000000003.0.5326123609445023�branch:to:respond�300000000000000000000000000000003.0.5326123609445023�history�300000000000000000000000000000003.0.5326123609445023�versions_seen��__input__��__start__��__start__�400000000000000000000000000000001.0.27584519426114595�respond��branch:to:respond�300000000000000000000000000000002.0.6353114410964813�updated_channels��__start__","{""source"": ""input"", ""step"": 2, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-c8b0-6afb-8003-6c245e82c5d4,1f17d8f4-c8a8-6e2c-8002-8f80ac6b61b3,msgpack,"��v�ts� 2026-07-12T01:16:24.317154+00:00�id�$1f17d8f4-c8b0-6afb-8003-6c245e82c5d4�channel_values��customer_message�my salry is 98000�response��history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India�branch:to:respond��channel_versions��__start__�400000000000000000000000000000005.0.09828760362856159�customer_message�400000000000000000000000000000005.0.09828760362856159�response�400000000000000000000000000000005.0.09828760362856159�branch:to:respond�400000000000000000000000000000005.0.09828760362856159�history�300000000000000000000000000000003.0.5326123609445023�versions_seen��__input__��__start__��__start__�300000000000000000000000000000004.0.7950526324212449�respond��branch:to:respond�300000000000000000000000000000002.0.6353114410964813�updated_channels��branch:to:respond�customer_message�response","{""source"": ""loop"", ""step"": 3, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f4-cdad-6a5a-8004-4582b6983e73,1f17d8f4-c8b0-6afb-8003-6c245e82c5d4,msgpack,"��v�ts� 2026-07-12T01:16:24.840218+00:00�id�$1f17d8f4-cdad-6a5a-8004-4582b6983e73�channel_values��customer_message�my salry is 98000�response��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India�channel_versions��__start__�400000000000000000000000000000005.0.09828760362856159�customer_message�400000000000000000000000000000005.0.09828760362856159�response�300000000000000000000000000000006.0.6429332088962376�branch:to:respond�300000000000000000000000000000006.0.6429332088962376�history�300000000000000000000000000000006.0.6429332088962376�versions_seen��__input__��__start__��__start__�300000000000000000000000000000004.0.7950526324212449�respond��branch:to:respond�400000000000000000000000000000005.0.09828760362856159�updated_channels��history�response","{""source"": ""loop"", ""step"": 4, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-4924-6b9f-8005-5017577a6493,1f17d8f4-cdad-6a5a-8004-4582b6983e73,msgpack,"��v�ts� 2026-07-12T01:16:37.786456+00:00�id�$1f17d8f5-4924-6b9f-8005-5017577a6493�channel_values��customer_message�my salry is 98000�response��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India�__start__��customer_message�what is my salary�response��channel_versions��__start__�300000000000000000000000000000007.0.5211651326118782�customer_message�400000000000000000000000000000005.0.09828760362856159�response�300000000000000000000000000000006.0.6429332088962376�branch:to:respond�300000000000000000000000000000006.0.6429332088962376�history�300000000000000000000000000000006.0.6429332088962376�versions_seen��__input__��__start__��__start__�300000000000000000000000000000004.0.7950526324212449�respond��branch:to:respond�400000000000000000000000000000005.0.09828760362856159�updated_channels��__start__","{""source"": ""input"", ""step"": 5, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-492c-6d05-8006-7eed8752be62,1f17d8f5-4924-6b9f-8005-5017577a6493,msgpack,"��v�ts� 2026-07-12T01:16:37.789768+00:00�id�$1f17d8f5-492c-6d05-8006-7eed8752be62�channel_values��customer_message�what is my salary�response��history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India�branch:to:respond��channel_versions��__start__�200000000000000000000000000000008.0.931838999614193�customer_message�200000000000000000000000000000008.0.931838999614193�response�200000000000000000000000000000008.0.931838999614193�branch:to:respond�200000000000000000000000000000008.0.931838999614193�history�300000000000000000000000000000006.0.6429332088962376�versions_seen��__input__��__start__��__start__�300000000000000000000000000000007.0.5211651326118782�respond��branch:to:respond�400000000000000000000000000000005.0.09828760362856159�updated_channels��branch:to:respond�customer_message�response","{""source"": ""loop"", ""step"": 6, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-4c9c-6e07-8007-12c8ded5546f,1f17d8f5-492c-6d05-8006-7eed8752be62,msgpack,"��v�ts� 2026-07-12T01:16:38.150222+00:00�id�$1f17d8f5-4c9c-6e07-8007-12c8ded5546f�channel_values��customer_message�what is my salary�response�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India��role�user�content�what is my salary��role�assistant�content�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India�channel_versions��__start__�200000000000000000000000000000008.0.931838999614193�customer_message�200000000000000000000000000000008.0.931838999614193�response�400000000000000000000000000000009.0.28597097439516683�branch:to:respond�400000000000000000000000000000009.0.28597097439516683�history�400000000000000000000000000000009.0.28597097439516683�versions_seen��__input__��__start__��__start__�300000000000000000000000000000007.0.5211651326118782�respond��branch:to:respond�200000000000000000000000000000008.0.931838999614193�updated_channels��history�response","{""source"": ""loop"", ""step"": 7, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-c344-65e2-8008-ac3114f30e91,1f17d8f5-4c9c-6e07-8007-12c8ded5546f,msgpack,"��v�ts� 2026-07-12T01:16:50.592053+00:00�id�$1f17d8f5-c344-65e2-8008-ac3114f30e91�channel_values��customer_message�what is my salary�response�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India��role�user�content�what is my salary��role�assistant�content�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India�__start__��customer_message�which product i am looking for�response��channel_versions��__start__�300000000000000000000000000000010.0.4693373409875389�customer_message�200000000000000000000000000000008.0.931838999614193�response�400000000000000000000000000000009.0.28597097439516683�branch:to:respond�400000000000000000000000000000009.0.28597097439516683�history�400000000000000000000000000000009.0.28597097439516683�versions_seen��__input__��__start__��__start__�300000000000000000000000000000007.0.5211651326118782�respond��branch:to:respond�200000000000000000000000000000008.0.931838999614193�updated_channels��__start__","{""source"": ""input"", ""step"": 8, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-c349-6c6a-8009-77789f1304da,1f17d8f5-c344-65e2-8008-ac3114f30e91,msgpack,"��v�ts� 2026-07-12T01:16:50.594268+00:00�id�$1f17d8f5-c349-6c6a-8009-77789f1304da�channel_values��customer_message�which product i am looking for�response��history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India��role�user�content�what is my salary��role�assistant�content�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India�branch:to:respond��channel_versions��__start__�300000000000000000000000000000011.0.2607990999304267�customer_message�300000000000000000000000000000011.0.2607990999304267�response�300000000000000000000000000000011.0.2607990999304267�branch:to:respond�300000000000000000000000000000011.0.2607990999304267�history�400000000000000000000000000000009.0.28597097439516683�versions_seen��__input__��__start__��__start__�300000000000000000000000000000010.0.4693373409875389�respond��branch:to:respond�200000000000000000000000000000008.0.931838999614193�updated_channels��branch:to:respond�customer_message�response","{""source"": ""loop"", ""step"": 9, ""parents"": {}}"
+4da7706d-6e8b-4614-b07f-a432408fede7,,1f17d8f5-c696-6e11-800a-fa772f84b68f,1f17d8f5-c349-6c6a-8009-77789f1304da,msgpack,"��v�ts� 2026-07-12T01:16:50.940399+00:00�id�$1f17d8f5-c696-6e11-800a-fa772f84b68f�channel_values��customer_message�which product i am looking for�response�@You were looking for a Home Loan.
+
+QuickLoan | FastFinance India�history���role�user�content�Home loan��role�assistant�content��FastFinance India offers a Home Loan product with competitive interest rates and flexible repayment terms. Here are the key features:
+
+* Interest rate: starting from 8.75% per year
+* Loan tenure: 5 to 30 years
+* Maximum loan amount: up to Rs. 5 crores
+
+To get pre-qualified for a Home Loan, I'll need to know a bit more about your financial situation. Can you please share your income, credit score, and the loan amount you're looking for?
+
+QuickLoan | FastFinance India��role�user�content�my salry is 98000��role�assistant�content��With a salary of Rs. 98,000, you may be eligible for a Home Loan from FastFinance India. However, to provide a more accurate pre-qualification, I need to consider a few more factors.
+
+Can you please share your:
+
+* Credit score (if available)
+* Desired loan amount
+* Any existing debt or loan obligations
+
+This information will help me provide a more accurate pre-qualification for a Home Loan.
+
+QuickLoan | FastFinance India��role�user�content�what is my salary��role�assistant�content�9Your salary is Rs. 98,000.
+
+QuickLoan | FastFinance India��role�user�content�which product i am looking for��role�assistant�content�@You were looking for a Home Loan.
+
+QuickLoan | FastFinance India�channel_versions��__start__�300000000000000000000000000000011.0.2607990999304267�customer_message�300000000000000000000000000000011.0.2607990999304267�response�300000000000000000000000000000012.0.6055888182585358�branch:to:respond�300000000000000000000000000000012.0.6055888182585358�history�300000000000000000000000000000012.0.6055888182585358�versions_seen��__input__��__start__��__start__�300000000000000000000000000000010.0.4693373409875389�respond��branch:to:respond�300000000000000000000000000000011.0.2607990999304267�updated_channels��history�response","{""source"": ""loop"", ""step"": 10, ""parents"": {}}"

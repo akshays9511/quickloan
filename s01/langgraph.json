@@ -1,1 +1,2 @@
-{"dependencies": ["."], "graphs": {"quickloan": "./quickloan/agent.py:graph"}, "env": "../../.env"}
+{"dependencies": ["."], "graphs": {"quickloan": ".quickloan.agent:graph"}, "env": "../../.env"}
+

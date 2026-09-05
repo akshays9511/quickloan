@@ -14,6 +14,9 @@ __pycache__/
 .coverage
 htmlcov/
 
+# LangGraph Studio local server cache
+.langgraph_api/
+
 # Editor
 .vscode/settings.json
 .idea/
@@ -22,8 +25,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Unreleased sessions -- release with: git add -f s02/ && git commit && git push
-s02/
+# Solutions (released after each class): git add -f s0X/solution/ && git commit && git push
+# Sessions (released before each class): git add -f s0X/starter/ && git commit && git push
+s*/solution/
 
 data/seed.py
 data/ingest.py

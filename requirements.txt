@@ -9,6 +9,7 @@
 langgraph>=1.0.0
 langgraph-checkpoint-sqlite>=2.0.0    # SqliteSaver for multi-turn memory (US-02, Session 2)
 aiosqlite>=0.19.0                     # async SQLite support required by langgraph-checkpoint-sqlite
+langgraph-cli[inmem]                  # langgraph dev -- local server + LangGraph Studio graph visualiser
 langchain>=0.3.0
 langchain-core>=0.3.0
 langchain-text-splitters>=0.3.0        # RecursiveCharacterTextSplitter (split from langchain in 0.3)

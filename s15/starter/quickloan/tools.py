@@ -12,7 +12,6 @@ MCP tool loading unchanged from Session 8.
 """
 import asyncio
 import sys
-import time
 
 from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -46,9 +45,6 @@ classifier_llm = ChatGroq(
     max_tokens=CLASSIFIER_MAX_TOKENS,
 )
 
-# ---------------------------------------------------------------------------
-# S14b: LlamaGuard 3 8B — conditional backend instantiation
-# ---------------------------------------------------------------------------
 if LLAMAGUARD_BACKEND == "together":
     from langchain_openai import ChatOpenAI
     llamaguard_llm = ChatOpenAI(
@@ -66,10 +62,6 @@ else:  # ollama (default)
         num_predict=LLAMAGUARD_MAX_TOKENS,
     )
 
-# ---------------------------------------------------------------------------
-# MCP tool loading -- langchain-mcp-adapters (unchanged from Session 8)
-# ---------------------------------------------------------------------------
-
 _mcp_client = MultiServerMCPClient({
     "quickloan": {
         "transport": "stdio",
@@ -78,26 +70,7 @@ _mcp_client = MultiServerMCPClient({
     }
 })
 
-def _load_mcp_tools_with_retry(attempts: int = 3, delay: float = 2.0) -> list:
-    """Spawn the MCP server subprocess and list its tools, retrying on failure.
-
-    The stdio handshake with a freshly spawned Python subprocess can fail
-    transiently on Windows under CPU load (e.g. Ollama saturating the CPU),
-    surfacing as an anyio BaseExceptionGroup / "Connection closed" error even
-    though the server script itself is correct. A short retry absorbs that
-    without masking a genuinely broken MCP_SERVER_PATH or server script.
-    """
-    for attempt in range(1, attempts + 1):
-        try:
-            return asyncio.run(_mcp_client.get_tools())
-        except BaseException as e:
-            if attempt == attempts:
-                raise
-            print(f"[QuickLoan] MCP tool loading failed (attempt {attempt}/{attempts}): {e!r} -- retrying")
-            time.sleep(delay)
-
-
-mcp_tools      = _load_mcp_tools_with_retry()   # [query_rates, query_eligibility]
+mcp_tools      = asyncio.run(_mcp_client.get_tools())   # [query_rates, query_eligibility]
 _tool_registry = {t.name: t for t in mcp_tools}
 
 llm_with_tools = llm.bind_tools(mcp_tools)

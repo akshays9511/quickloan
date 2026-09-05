@@ -1,0 +1,322 @@
+[
+  {
+    "id": "S01",
+    "query": "What is the personal loan interest rate at FastFinance India?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["11.5", "Personal Loan"],
+    "must_not_contain": ["HDFC", "SBI", "I cannot", "I don't know"]
+  },
+  {
+    "id": "S02",
+    "query": "What is the home loan interest rate at FastFinance?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["8.75", "Home Loan"],
+    "must_not_contain": ["HDFC", "SBI", "I cannot"]
+  },
+  {
+    "id": "S03",
+    "query": "What interest rate does FastFinance charge for a business loan?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["14.0", "Business Loan"],
+    "must_not_contain": ["HDFC", "SBI", "I cannot"]
+  },
+  {
+    "id": "S04",
+    "query": "What is the gold loan interest rate at FastFinance India?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["10.5", "Gold Loan"],
+    "must_not_contain": ["HDFC", "SBI", "I cannot"]
+  },
+  {
+    "id": "S05",
+    "query": "What rate will I get on a personal loan if my CIBIL score is 760?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["11.5", "Personal Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S06",
+    "query": "What is the home loan rate for a CIBIL score of 730?",
+    "expected_route": "SIMPLE",
+    "category": "loan_rates",
+    "criteria": ["9.5", "Home Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S07",
+    "query": "What is the minimum CIBIL score required for a personal loan?",
+    "expected_route": "SIMPLE",
+    "category": "eligibility",
+    "criteria": ["700", "Personal Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S08",
+    "query": "What is the minimum income required for a home loan at FastFinance?",
+    "expected_route": "SIMPLE",
+    "category": "eligibility",
+    "criteria": ["40,000", "Home Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S09",
+    "query": "What age do I need to be to apply for a business loan?",
+    "expected_route": "SIMPLE",
+    "category": "eligibility",
+    "criteria": ["25", "Business Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S10",
+    "query": "Can a retired person apply for a gold loan at FastFinance?",
+    "expected_route": "SIMPLE",
+    "category": "eligibility",
+    "criteria": ["Gold Loan", "retired"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S11",
+    "query": "What is the minimum CIBIL score needed for a home loan?",
+    "expected_route": "SIMPLE",
+    "category": "eligibility",
+    "criteria": ["720", "Home Loan"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S12",
+    "query": "What is the maximum loan amount I can get for a personal loan?",
+    "expected_route": "SIMPLE",
+    "category": "loan_products",
+    "criteria": ["Personal Loan", "5"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S13",
+    "query": "What is the maximum tenure for a home loan at FastFinance?",
+    "expected_route": "SIMPLE",
+    "category": "loan_products",
+    "criteria": ["Home Loan", "30"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S14",
+    "query": "What is the processing fee for a business loan?",
+    "expected_route": "SIMPLE",
+    "category": "loan_products",
+    "criteria": ["Business Loan", "2.5"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S15",
+    "query": "What is the maximum gold loan amount FastFinance offers?",
+    "expected_route": "SIMPLE",
+    "category": "loan_products",
+    "criteria": ["Gold Loan", "15"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S16",
+    "query": "What documents do I need to apply for a personal loan?",
+    "expected_route": "SIMPLE",
+    "category": "loan_policy",
+    "criteria": ["Personal Loan", "income"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S17",
+    "query": "How do I apply for a home loan at FastFinance India?",
+    "expected_route": "SIMPLE",
+    "category": "loan_policy",
+    "criteria": ["Home Loan", "FastFinance"],
+    "must_not_contain": ["HDFC", "SBI", "I cannot"]
+  },
+  {
+    "id": "S18",
+    "query": "Does FastFinance India offer prepayment on personal loans?",
+    "expected_route": "SIMPLE",
+    "category": "loan_policy",
+    "criteria": ["Personal Loan", "FastFinance"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S19",
+    "query": "What is the minimum tenure for a gold loan?",
+    "expected_route": "SIMPLE",
+    "category": "loan_policy",
+    "criteria": ["Gold Loan", "3"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "S20",
+    "query": "What employment types are eligible for a business loan at FastFinance?",
+    "expected_route": "SIMPLE",
+    "category": "loan_policy",
+    "criteria": ["Business Loan", "self-employed"],
+    "must_not_contain": ["I cannot", "I don't know"]
+  },
+  {
+    "id": "C01",
+    "query": "I earn Rs. 55,000 a month and want a home loan of Rs. 40 lakh. Can I get it?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C02",
+    "query": "Should I take a personal loan or a business loan for my startup?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C03",
+    "query": "What EMI will I pay for a personal loan of Rs. 3 lakh over 3 years?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C04",
+    "query": "My CIBIL score is 680. What loan options do I have at FastFinance?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C05",
+    "query": "Which is better for me — a home loan or renting? I earn Rs. 70,000 per month.",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C06",
+    "query": "I want to prepay my home loan. How much will I save in interest?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C07",
+    "query": "Compare all loan products and tell me which gives the best deal for my situation.",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C08",
+    "query": "I have a gold loan and a personal loan at FastFinance. Which should I pay off first?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C09",
+    "query": "I am 62 years old and self-employed. Can I get a home loan for 20 years?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "C10",
+    "query": "How much home loan can I get on a salary of Rs. 80,000 per month?",
+    "expected_route": "COMPLEX",
+    "category": "complex",
+    "criteria": ["loan officer", "FastFinance"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O01",
+    "query": "Write me a poem about buying a house.",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O02",
+    "query": "What is the stock market doing today?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O03",
+    "query": "Compare FastFinance India loans with HDFC Bank loans.",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O04",
+    "query": "Can you help me file my income tax return?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O05",
+    "query": "What is the weather in Mumbai today?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O06",
+    "query": "Recommend a good mutual fund to invest in.",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O07",
+    "query": "What is Repo Rate and how does RBI set it?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O08",
+    "query": "Translate this sentence into Hindi: I want a home loan.",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O09",
+    "query": "What are the best credit cards in India right now?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  },
+  {
+    "id": "O10",
+    "query": "Can you book a hotel room for me in Pune?",
+    "expected_route": "OUT_OF_SCOPE",
+    "category": "oos",
+    "criteria": ["FastFinance India"],
+    "must_not_contain": []
+  }
+]

@@ -28,7 +28,9 @@ Thumbs.db
 # Solutions (released after each class): git add -f s0X/solution/ && git commit && git push
 # Sessions (released before each class): git add -f s0X/starter/ && git commit && git push
 s*/solution/
-
+!s15/
+!s15/solution/
+!s15/solution/**
 data/seed.py
 data/ingest.py
 data/*.db

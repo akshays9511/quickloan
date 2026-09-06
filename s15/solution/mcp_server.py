@@ -143,6 +143,84 @@ def query_eligibility(product_id: str = "all") -> str:
     return "\n\n".join(parts)
 
 
+@mcp.tool()
+def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, tenure_months: int) -> str:
+    """Calculate the Equated Monthly Installment (EMI) for a FastFinance India loan.
+
+    Uses the standard reducing-balance EMI formula:
+        EMI = P * r * (1+r)^n / ((1+r)^n - 1)
+    where r is the monthly interest rate (annual_rate_pct / 12 / 100) and n is
+    the tenure in months. This is a deterministic calculation done in code --
+    the agent must never compute EMI itself, only via this tool, so it always
+    matches what a real customer would be quoted.
+
+    Args:
+        product_id: One of "personal_loan", "home_loan", "business_loan", "gold_loan".
+        principal: Loan amount in Rupees (e.g. 500000 for Rs. 5,00,000).
+        annual_rate_pct: Annual interest rate in percent (e.g. 11.5 for 11.5% p.a.).
+            Get this from query_rates first -- never guess it.
+        tenure_months: Loan tenure in months (e.g. 36 for 3 years).
+
+    Returns a formatted EMI breakdown (monthly EMI, total payment, total
+    interest) as a plain-text string, with a warning appended if the
+    requested amount or tenure falls outside the product's normal range.
+    """
+    product_id = product_id.lower()
+
+    if principal <= 0:
+        return "Error: principal must be a positive loan amount."
+    if tenure_months <= 0:
+        return "Error: tenure_months must be a positive number of months."
+    if annual_rate_pct < 0:
+        return "Error: annual_rate_pct cannot be negative."
+
+    rows = _execute_query(
+        "SELECT product_name, min_tenure_months, max_tenure_months, max_loan_amount "
+        "FROM loan_products WHERE product_id = ?",
+        (product_id,),
+    )
+    if not rows:
+        return (
+            f"Error: unknown product '{product_id}'. Valid options: "
+            "personal_loan, home_loan, business_loan, gold_loan."
+        )
+
+    product_name, min_tenure, max_tenure, max_amount = rows[0]
+
+    monthly_rate = annual_rate_pct / 12 / 100
+    if monthly_rate == 0:
+        emi = principal / tenure_months
+    else:
+        factor = (1 + monthly_rate) ** tenure_months
+        emi = principal * monthly_rate * factor / (factor - 1)
+
+    total_payment = emi * tenure_months
+    total_interest = total_payment - principal
+
+    lines = [
+        f"EMI Calculation -- {product_name}",
+        f"  Loan amount    : Rs. {principal:,.0f}",
+        f"  Interest rate  : {annual_rate_pct:.2f}% p.a.",
+        f"  Tenure         : {tenure_months} months",
+        f"  Monthly EMI    : Rs. {emi:,.2f}",
+        f"  Total payment  : Rs. {total_payment:,.2f}",
+        f"  Total interest : Rs. {total_interest:,.2f}",
+    ]
+
+    if not (min_tenure <= tenure_months <= max_tenure):
+        lines.append(
+            f"  Note: {product_name} tenure is normally {min_tenure}-{max_tenure} months; "
+            f"{tenure_months} months is outside that range."
+        )
+    if principal > max_amount:
+        lines.append(
+            f"  Note: {product_name} maximum loan amount is Rs. {max_amount:,}; "
+            f"Rs. {principal:,.0f} exceeds that."
+        )
+
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------

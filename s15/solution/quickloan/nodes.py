@@ -188,6 +188,9 @@ def _policy_respond(state: QuickLoanState) -> dict:
     }
 
 
+_MAX_TOOL_ROUNDS = 3  # e.g. query_rates -> calculate_emi is 2 rounds; caps runaway chains
+
+
 def _rates_respond(state: QuickLoanState) -> dict:
     history  = state.get("history", [])
     messages = [SystemMessage(content=SYSTEM_PROMPT)]
@@ -199,9 +202,18 @@ def _rates_respond(state: QuickLoanState) -> dict:
     messages.append(HumanMessage(content=state["customer_message"]))
 
     try:
-        result = llm_with_tools.invoke(messages)
-
-        if result.tool_calls:
+        # Loop while the model keeps requesting tools -- an EMI question with
+        # no rate given needs query_rates, THEN calculate_emi (two rounds).
+        # A single tools-bound round used to be followed by one forced,
+        # tools-unbound call to get final text; that broke as soon as a
+        # second tool became necessary, since Groq rejects a tool-call-shaped
+        # generation when no tools are declared for that request ("Tool
+        # choice is none, but model called a tool").
+        result   = llm_with_tools.invoke(messages)
+        used_tool = False
+        rounds    = 0
+        while result.tool_calls and rounds < _MAX_TOOL_ROUNDS:
+            used_tool = True
             messages.append(result)
             for tc in result.tool_calls:
                 tool_output = _run_tool(tc["name"], tc["args"])
@@ -210,6 +222,13 @@ def _rates_respond(state: QuickLoanState) -> dict:
                     f"-> {str(tool_output)[:80]}"
                 )
                 messages.append(ToolMessage(content=str(tool_output), tool_call_id=tc["id"]))
+            rounds += 1
+            result = llm_with_tools.invoke(messages)
+
+        if used_tool:
+            # Final pass with tools unbound -- forces natural-language text
+            # instead of yet another tool call, now that the model has
+            # everything it asked for (or the round cap was hit).
             if _stream_callback is not None:
                 response_text = ""
                 for chunk in llm.stream(messages):

@@ -272,7 +272,7 @@ def _sidebar() -> None:
         st.markdown(
             "- **Guard** — blocks injections & PII\n"
             "- **Supervisor** — classifies clean queries\n"
-            "- **Rates Agent** — live interest rates via MCP\n"
+            "- **Rates Agent** — live interest rates & EMI calculator via MCP\n"
             "- **Policy Agent** — loan policy via RAG\n"
             "- **Compliance Agent** — RBI rules check\n"
             "- **Human-in-the-Loop** — reviews revisions"

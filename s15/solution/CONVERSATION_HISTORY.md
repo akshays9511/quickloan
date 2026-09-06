@@ -14,6 +14,37 @@ itself. Both together meant every conversation vanished the moment you started
 a new one, or the moment the app process restarted, with no way to look at it
 again.
 
+## Implementation changelog (for team reference)
+
+**One file touched: `app.py`.** Nothing in `quickloan/config.py`, `nodes.py`,
+`agent.py`, `tools.py`, `state.py`, or the graph/routing logic changed — this
+was purely a Streamlit session/UI-layer fix, not an agent-behavior change.
+
+| Area | Before | After |
+|---|---|---|
+| Checkpointer | `MemorySaver()` — in-process RAM only, gone on rebuild/restart | `SqliteSaver(conn)` on `data/checkpoints.db` — same file/pattern the CLI (`quickloan/agent.py::run()`) already used |
+| "New Conversation" button | Popped `graph` itself → forced a brand-new empty `MemorySaver`, destroying every prior thread in that session | Only resets `thread_id`/`messages`/`routes` → `graph` and its DB connection stay alive, so no thread is destroyed |
+| Browsing old conversations | Not possible — no listing UI existed at all | New **"Past Conversations"** sidebar section lists prior threads, newest first, clickable to reopen |
+| Route/compliance captions on reopen | N/A (feature didn't exist) | Captured and restored via a new sidecar table, since they aren't part of the graph's own state |
+
+### Specific additions in `app.py`
+
+1. **New imports**: `sqlite3`, `datetime`/`timezone`, `CHECKPOINT_DB` (from `quickloan.config`), `SqliteSaver` (from `langgraph.checkpoint.sqlite`).
+2. **Two new SQLite tables**, created on first run by `_ensure_conversations_table()`:
+   - `conversations` — one row per thread (id, title, created_at), for the sidebar list.
+   - `conversation_messages` — one row per message (thread_id, seq, role, content, route_label), the actual transcript + captions.
+3. **Four new functions**:
+   - `_persist_message()` — writes one message row.
+   - `_record_conversation_start()` — writes a thread's title row on its first message.
+   - `_list_past_conversations()` — reads the sidebar's list, excluding the currently active thread.
+   - `_load_conversation()` — reads a thread's full transcript back into `st.session_state` when a past conversation is clicked.
+4. **`_init_session()` rewritten** to open a persistent `sqlite3.connect(CHECKPOINT_DB, check_same_thread=False)` connection (stored as `st.session_state.db_conn`) and build the graph with `SqliteSaver(conn)` instead of `MemorySaver()`.
+5. **`_sidebar()` updated**: "New Conversation" button behavior changed as above; new "Past Conversations" section added between it and the "Agents" list.
+6. **`main()` and `_handle_hitl()` updated**: every point that appends a message to `st.session_state.messages` (user message, guard-blocked reply, normal reply, HITL-approved reply) now also calls `_persist_message()` so nothing is lost.
+
+### Net effect
+Conversations now survive clicking "New Conversation," reloading the page, and restarting the app/container (as long as `data/checkpoints.db` persists — e.g. via a mounted volume in Docker). Verified end-to-end with real usage: two real conversations recorded correctly, including a mid-conversation follow-up question and their original route/compliance captions, confirmed by directly calling the production `_list_past_conversations()` function against the live database.
+
 ## Storage
 
 Everything lives in one SQLite file: `data/checkpoints.db`

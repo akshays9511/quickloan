@@ -19,6 +19,8 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
+from quickloan.emi import calculate_emi_breakdown
+
 # ---------------------------------------------------------------------------
 # Server instantiation
 # ---------------------------------------------------------------------------
@@ -29,7 +31,11 @@ mcp = FastMCP("quickloan-tools")
 # Configuration
 # ---------------------------------------------------------------------------
 
-DATA_DIR = Path(__file__).parent.parent.parent / "data"
+# S15: mcp_server.py sits alongside data/ so Docker COPY works with a flat
+# build context. Both locally and inside the container this resolves correctly:
+#   local:     s15/solution/data/fastfinance_data.db
+#   container: /app/data/fastfinance_data.db
+DATA_DIR = Path(__file__).parent / "data"
 DB_PATH  = DATA_DIR / "fastfinance_data.db"
 
 
@@ -167,13 +173,6 @@ def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, ten
     """
     product_id = product_id.lower()
 
-    if principal <= 0:
-        return "Error: principal must be a positive loan amount."
-    if tenure_months <= 0:
-        return "Error: tenure_months must be a positive number of months."
-    if annual_rate_pct < 0:
-        return "Error: annual_rate_pct cannot be negative."
-
     rows = _execute_query(
         "SELECT product_name, min_tenure_months, max_tenure_months, max_loan_amount "
         "FROM loan_products WHERE product_id = ?",
@@ -187,15 +186,14 @@ def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, ten
 
     product_name, min_tenure, max_tenure, max_amount = rows[0]
 
-    monthly_rate = annual_rate_pct / 12 / 100
-    if monthly_rate == 0:
-        emi = principal / tenure_months
-    else:
-        factor = (1 + monthly_rate) ** tenure_months
-        emi = principal * monthly_rate * factor / (factor - 1)
+    try:
+        breakdown = calculate_emi_breakdown(principal, annual_rate_pct, tenure_months)
+    except ValueError as e:
+        return f"Error: {e}"
 
-    total_payment = emi * tenure_months
-    total_interest = total_payment - principal
+    emi            = breakdown["emi"]
+    total_payment  = breakdown["total_payment"]
+    total_interest = breakdown["total_interest"]
 
     lines = [
         f"EMI Calculation -- {product_name}",

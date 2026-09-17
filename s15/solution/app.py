@@ -53,7 +53,8 @@ if not os.environ.get("GROQ_API_KEY"):
     st.stop()
 
 from quickloan.agent import build_graph  # noqa: E402
-from quickloan.config import CHECKPOINT_DB  # noqa: E402
+from quickloan.config import CHECKPOINT_DB, DB_PATH  # noqa: E402
+from quickloan.emi import calculate_emi_breakdown  # noqa: E402
 import quickloan.nodes as _nodes        # noqa: E402
 from langgraph.checkpoint.sqlite import SqliteSaver  # noqa: E402
 
@@ -140,6 +141,102 @@ def format_route_label(result: dict) -> str:
 def is_escalated(result: dict) -> bool:
     """Return True when the query was escalated to a loan officer."""
     return result.get("specialist", "") == "escalated"
+
+
+# ---------------------------------------------------------------------------
+# S15: EMI Calculator tab
+#
+# A dedicated form alongside the chat, for customers who want to explore
+# numbers directly instead of asking in natural language. It reads real loan
+# products/rate slabs straight from fastfinance_data.db (the same database
+# the chat agent's query_rates tool uses) so the dropdowns only ever offer
+# rates FastFinance actually provides -- and it calls the exact same
+# calculate_emi_breakdown() function the chat agent's calculate_emi MCP tool
+# calls, so the two surfaces can never disagree on the math.
+# ---------------------------------------------------------------------------
+
+def _get_loan_products() -> list[dict]:
+    conn = sqlite3.connect(str(DB_PATH))
+    rows = conn.execute(
+        "SELECT product_id, product_name, min_tenure_months, max_tenure_months, max_loan_amount "
+        "FROM loan_products ORDER BY product_name"
+    ).fetchall()
+    conn.close()
+    return [
+        {
+            "product_id":  r[0],
+            "product_name": r[1],
+            "min_tenure":  r[2],
+            "max_tenure":  r[3],
+            "max_amount":  r[4],
+        }
+        for r in rows
+    ]
+
+
+def _get_rate_slabs(product_id: str) -> list[dict]:
+    conn = sqlite3.connect(str(DB_PATH))
+    rows = conn.execute(
+        "SELECT min_cibil, max_cibil, annual_rate_pct FROM rate_slabs "
+        "WHERE product_id = ? ORDER BY min_cibil DESC",
+        (product_id,),
+    ).fetchall()
+    conn.close()
+    return [{"min_cibil": r[0], "max_cibil": r[1], "rate": r[2]} for r in rows]
+
+
+def _slab_label(slab: dict) -> str:
+    if slab["min_cibil"] <= 0 and slab["max_cibil"] >= 900:
+        return f"Flat rate — {slab['rate']:.2f}% p.a."
+    return f"CIBIL {slab['min_cibil']}-{slab['max_cibil']} — {slab['rate']:.2f}% p.a."
+
+
+def _emi_calculator_tab() -> None:
+    st.subheader("🧮 EMI Calculator")
+    st.caption("Rates and loan limits below are read live from FastFinance's database.")
+
+    products = _get_loan_products()
+    product_by_name = {p["product_name"]: p for p in products}
+    product_name = st.selectbox("Loan type", list(product_by_name.keys()))
+    product = product_by_name[product_name]
+
+    slabs = _get_rate_slabs(product["product_id"])
+    slab_by_label = {_slab_label(s): s for s in slabs}
+    slab_label = st.selectbox("Interest rate (by CIBIL score)", list(slab_by_label.keys()))
+    slab = slab_by_label[slab_label]
+
+    col1, col2 = st.columns(2)
+    principal = col1.number_input(
+        "Loan amount (Rs.)",
+        min_value=10_000,
+        max_value=int(product["max_amount"]),
+        value=min(500_000, int(product["max_amount"])),
+        step=10_000,
+        help=f"Maximum for {product_name}: Rs. {product['max_amount']:,}",
+    )
+    tenure_months = col2.number_input(
+        "Tenure (months)",
+        min_value=int(product["min_tenure"]),
+        max_value=int(product["max_tenure"]),
+        value=int((product["min_tenure"] + product["max_tenure"]) // 2),
+        step=1,
+        help=f"{product_name} tenure range: {product['min_tenure']}-{product['max_tenure']} months",
+    )
+
+    if st.button("Calculate EMI", type="primary", use_container_width=True):
+        try:
+            breakdown = calculate_emi_breakdown(principal, slab["rate"], int(tenure_months))
+        except ValueError as e:
+            st.error(str(e))
+        else:
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Monthly EMI", f"Rs. {breakdown['emi']:,.2f}")
+            m2.metric("Total Payment", f"Rs. {breakdown['total_payment']:,.2f}")
+            m3.metric("Total Interest", f"Rs. {breakdown['total_interest']:,.2f}")
+            st.caption(
+                f"{product_name} · {slab_label} · {int(tenure_months)} months · "
+                "Pre-qualification estimate only, subject to final approval."
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -347,70 +444,77 @@ def main() -> None:
 
     _init_session()
     _sidebar()
-    _render_history()
 
-    hitl_active = _handle_hitl()
+    tab_chat, tab_emi = st.tabs(["💬 Chat", "🧮 EMI Calculator"])
 
-    if not hitl_active:
-        prompt = st.chat_input("Ask about loan rates, eligibility, or our policies…")
-        if prompt:
-            if not st.session_state.messages:
-                _record_conversation_start(st.session_state.db_conn, st.session_state.thread_id, prompt)
+    with tab_chat:
+        _render_history()
 
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            _persist_message(
-                st.session_state.db_conn, st.session_state.thread_id,
-                len(st.session_state.messages) - 1, "user", prompt,
-            )
-            with st.chat_message("user"):
-                st.markdown(prompt)
+        hitl_active = _handle_hitl()
 
-            with st.chat_message("assistant"):
-                placeholder = st.empty()
+        if not hitl_active:
+            prompt = st.chat_input("Ask about loan rates, eligibility, or our policies…")
+            if prompt:
+                if not st.session_state.messages:
+                    _record_conversation_start(st.session_state.db_conn, st.session_state.thread_id, prompt)
 
-            delay_ms = st.session_state.get("token_delay", 0)
-            streamer = _StreamingState(placeholder, token_delay=delay_ms / 1000)
-            _nodes._stream_callback = streamer
-            try:
-                result = st.session_state.graph.invoke(
-                    build_input_state(prompt),
-                    config=get_thread_config(st.session_state.thread_id),
-                )
-            finally:
-                _nodes._stream_callback = None
-
-            route_label = format_route_label(result)
-            blocked_r   = result.get("blocked_reason", "")
-
-            if blocked_r:
-                placeholder.warning(result["response"])
-                st.caption(route_label)
-                st.session_state.messages.append({"role": "assistant", "content": result["response"]})
-                st.session_state.routes.append(route_label)
+                st.session_state.messages.append({"role": "user", "content": prompt})
                 _persist_message(
                     st.session_state.db_conn, st.session_state.thread_id,
-                    len(st.session_state.messages) - 1, "assistant", result["response"], route_label,
+                    len(st.session_state.messages) - 1, "user", prompt,
                 )
-            elif needs_human_review(result):
-                placeholder.empty()
-                st.session_state.pending_hitl = {
-                    "response":    result["response"],
-                    "route_label": route_label,
-                }
-                st.rerun()
-            else:
-                response = result["response"]
-                if is_escalated(result):
-                    placeholder.warning(response)
+                with st.chat_message("user"):
+                    st.markdown(prompt)
+
+                with st.chat_message("assistant"):
+                    placeholder = st.empty()
+
+                delay_ms = st.session_state.get("token_delay", 0)
+                streamer = _StreamingState(placeholder, token_delay=delay_ms / 1000)
+                _nodes._stream_callback = streamer
+                try:
+                    result = st.session_state.graph.invoke(
+                        build_input_state(prompt),
+                        config=get_thread_config(st.session_state.thread_id),
+                    )
+                finally:
+                    _nodes._stream_callback = None
+
+                route_label = format_route_label(result)
+                blocked_r   = result.get("blocked_reason", "")
+
+                if blocked_r:
+                    placeholder.warning(result["response"])
+                    st.caption(route_label)
+                    st.session_state.messages.append({"role": "assistant", "content": result["response"]})
+                    st.session_state.routes.append(route_label)
+                    _persist_message(
+                        st.session_state.db_conn, st.session_state.thread_id,
+                        len(st.session_state.messages) - 1, "assistant", result["response"], route_label,
+                    )
+                elif needs_human_review(result):
+                    placeholder.empty()
+                    st.session_state.pending_hitl = {
+                        "response":    result["response"],
+                        "route_label": route_label,
+                    }
+                    st.rerun()
                 else:
-                    placeholder.markdown(response)
-                st.caption(route_label)
-                st.session_state.messages.append({"role": "assistant", "content": response})
-                st.session_state.routes.append(route_label)
-                _persist_message(
-                    st.session_state.db_conn, st.session_state.thread_id,
-                    len(st.session_state.messages) - 1, "assistant", response, route_label,
-                )
+                    response = result["response"]
+                    if is_escalated(result):
+                        placeholder.warning(response)
+                    else:
+                        placeholder.markdown(response)
+                    st.caption(route_label)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.routes.append(route_label)
+                    _persist_message(
+                        st.session_state.db_conn, st.session_state.thread_id,
+                        len(st.session_state.messages) - 1, "assistant", response, route_label,
+                    )
+
+    with tab_emi:
+        _emi_calculator_tab()
 
 
 if __name__ == "__main__":

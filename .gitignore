@@ -34,3 +34,4 @@ s*/solution/
 data/seed.py
 data/ingest.py
 data/*.db
+rootdesk/

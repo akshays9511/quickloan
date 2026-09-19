@@ -19,7 +19,7 @@ from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
-from quickloan.emi import calculate_emi_breakdown
+from quickloan.emi import calculate_apr, calculate_emi_breakdown
 
 # ---------------------------------------------------------------------------
 # Server instantiation
@@ -84,22 +84,26 @@ def query_rates(product_id: str = "all") -> str:
 
     if product_id == "all":
         rows = _execute_query(
-            "SELECT lp.product_name, rs.min_cibil, rs.max_cibil, rs.annual_rate_pct "
+            "SELECT lp.product_name, rs.min_cibil, rs.max_cibil, rs.annual_rate_pct, lp.processing_fee_pct "
             "FROM rate_slabs rs JOIN loan_products lp ON rs.product_id = lp.product_id "
             "ORDER BY lp.product_name, rs.min_cibil DESC"
         )
     else:
         rows = _execute_query(
-            "SELECT lp.product_name, rs.min_cibil, rs.max_cibil, rs.annual_rate_pct "
+            "SELECT lp.product_name, rs.min_cibil, rs.max_cibil, rs.annual_rate_pct, lp.processing_fee_pct "
             "FROM rate_slabs rs JOIN loan_products lp ON rs.product_id = lp.product_id "
             "WHERE rs.product_id = ? "
             "ORDER BY rs.min_cibil DESC",
             (product_id,),
         )
 
+    # RBI Digital Lending Directions require the all-inclusive cost (not just
+    # the nominal rate) to be disclosed alongside any quote -- the processing
+    # fee is included here so the agent can never quote a rate in isolation.
     lines = [
-        f"{name}: {rate:.2f}% p.a. (CIBIL {min_cibil}-{max_cibil})"
-        for name, min_cibil, max_cibil, rate in rows
+        f"{name}: {rate:.2f}% p.a. (CIBIL {min_cibil}-{max_cibil}) "
+        f"+ {fee_pct:.2f}% processing fee (one-time, deducted from disbursal)"
+        for name, min_cibil, max_cibil, rate, fee_pct in rows
     ]
     return "\n".join(lines) if lines else f"No rate data found for product: '{product_id}'."
 
@@ -174,7 +178,7 @@ def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, ten
     product_id = product_id.lower()
 
     rows = _execute_query(
-        "SELECT product_name, min_tenure_months, max_tenure_months, max_loan_amount "
+        "SELECT product_name, min_tenure_months, max_tenure_months, max_loan_amount, processing_fee_pct "
         "FROM loan_products WHERE product_id = ?",
         (product_id,),
     )
@@ -184,10 +188,11 @@ def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, ten
             "personal_loan, home_loan, business_loan, gold_loan."
         )
 
-    product_name, min_tenure, max_tenure, max_amount = rows[0]
+    product_name, min_tenure, max_tenure, max_amount, processing_fee_pct = rows[0]
 
     try:
         breakdown = calculate_emi_breakdown(principal, annual_rate_pct, tenure_months)
+        apr_info  = calculate_apr(principal, annual_rate_pct, tenure_months, processing_fee_pct)
     except ValueError as e:
         return f"Error: {e}"
 
@@ -195,14 +200,20 @@ def calculate_emi(product_id: str, principal: float, annual_rate_pct: float, ten
     total_payment  = breakdown["total_payment"]
     total_interest = breakdown["total_interest"]
 
+    # RBI Key Fact Statement (KFS) requires the Annual Percentage Rate (APR --
+    # the all-inclusive cost including the processing fee) to be disclosed
+    # alongside the nominal rate, never the nominal rate alone.
     lines = [
         f"EMI Calculation -- {product_name}",
-        f"  Loan amount    : Rs. {principal:,.0f}",
-        f"  Interest rate  : {annual_rate_pct:.2f}% p.a.",
-        f"  Tenure         : {tenure_months} months",
-        f"  Monthly EMI    : Rs. {emi:,.2f}",
-        f"  Total payment  : Rs. {total_payment:,.2f}",
-        f"  Total interest : Rs. {total_interest:,.2f}",
+        f"  Loan amount        : Rs. {principal:,.0f}",
+        f"  Nominal rate       : {annual_rate_pct:.2f}% p.a.",
+        f"  Processing fee     : {processing_fee_pct:.2f}% (Rs. {apr_info['processing_fee']:,.2f}, one-time)",
+        f"  Net amount disbursed: Rs. {apr_info['net_disbursed']:,.2f}",
+        f"  APR (all-in cost)  : {apr_info['apr']:.2f}% p.a. -- quote this, not the nominal rate alone",
+        f"  Tenure             : {tenure_months} months",
+        f"  Monthly EMI        : Rs. {emi:,.2f}",
+        f"  Total payment      : Rs. {total_payment:,.2f}",
+        f"  Total interest     : Rs. {total_interest:,.2f}",
     ]
 
     if not (min_tenure <= tenure_months <= max_tenure):

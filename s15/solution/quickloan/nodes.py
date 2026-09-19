@@ -32,6 +32,7 @@ from .config import (
     GUARD_BLOCKED_RESPONSE,
     GUARD_PII_RESPONSE,
     INJECTION_PATTERNS,
+    KFS_NOTE,
     PII_PATTERNS,
     POLICY_SYSTEM_PROMPT,
     QUICKLOAN_BANNED_PHRASES,
@@ -237,6 +238,13 @@ def _rates_respond(state: QuickLoanState) -> dict:
                         _stream_callback(chunk.content)
             else:
                 response_text = llm.invoke(messages).content
+
+            # RBI KFS disclosure: appended deterministically rather than left
+            # to the LLM to remember, since a rate/EMI tool was actually
+            # called -- this response is a real quote, not general chat.
+            response_text = response_text.rstrip() + "\n\n" + KFS_NOTE
+            if _stream_callback is not None:
+                _stream_callback("\n\n" + KFS_NOTE)
         else:
             response_text = result.content
 
@@ -279,18 +287,34 @@ _rates_agent  = create_rates_agent()
 # Compliance helpers
 # ---------------------------------------------------------------------------
 
-def _load_valid_rates() -> set:
+def _load_valid_rates() -> Optional[set]:
+    """Return the set of valid rates, or None if the database couldn't be
+    reached. None is distinct from an empty set so the caller can fail
+    closed (block an unverifiable rate claim) instead of silently skipping
+    the check when the DB is down -- a live DB outage must not look like a
+    clean compliance pass."""
     try:
         conn  = sqlite3.connect(str(DB_PATH), check_same_thread=False)
         rows  = conn.execute("SELECT annual_rate_pct FROM rate_slabs").fetchall()
         conn.close()
         return {row[0] for row in rows}
     except Exception:
-        return set()
+        return None
+
+
+_APR_MENTION_RE = re.compile(
+    r"(?:APR|annual percentage rate)[^%\n]{0,40}?\d+\.?\d*\s*%\s*p\.a\.",
+    re.IGNORECASE,
+)
 
 
 def _extract_rates(text: str) -> list:
-    matches = re.findall(r"(\d+\.?\d*)\s*%\s*p\.a\.", text, re.IGNORECASE)
+    # APR is a derived, per-loan all-inclusive figure (from calculate_apr,
+    # not a rate_slabs lookup) that legitimately differs from the nominal
+    # rate -- excluded here so a correct APR mention isn't flagged as a
+    # "hallucinated rate" against the nominal-rate database below.
+    sanitized = _APR_MENTION_RE.sub("", text)
+    matches = re.findall(r"(\d+\.?\d*)\s*%\s*p\.a\.", sanitized, re.IGNORECASE)
     return [float(m) for m in matches]
 
 
@@ -305,10 +329,13 @@ def _check_compliance_logic(draft: str) -> tuple:
     mentioned_rates = _extract_rates(draft)
     if mentioned_rates:
         valid_rates = _load_valid_rates()
-        if valid_rates:
-            for rate in mentioned_rates:
-                if rate not in valid_rates:
-                    return False, f"hallucinated rate: {rate}% p.a. not in database"
+        if valid_rates is None:
+            # DB unreachable: fail closed rather than silently passing an
+            # unverifiable rate claim through.
+            return False, "compliance check unavailable: could not verify quoted rate against database"
+        for rate in mentioned_rates:
+            if rate not in valid_rates:
+                return False, f"hallucinated rate: {rate}% p.a. not in database"
 
     return True, "PASS"
 
@@ -319,15 +346,15 @@ def check_rbi(state: QuickLoanState) -> dict:
 
     if not passed:
         print(f"[QuickLoan] Compliance FAIL: {reason}")
-        return {"compliance_status": f"FAIL: {reason}"}
+        return {"compliance_status": f"FAIL: {reason}", "compliance_reason": reason}
 
     print("[QuickLoan] Compliance PASS")
-    return {"compliance_status": "PASS"}
+    return {"compliance_status": "PASS", "compliance_reason": ""}
 
 
 def revise_response(state: QuickLoanState) -> dict:
     draft  = state["response"]
-    reason = state.get("compliance_status", "violation").replace("FAIL: ", "")
+    reason = state.get("compliance_reason") or state.get("compliance_status", "violation").replace("FAIL: ", "")
 
     prompt = (
         "You are a FastFinance India compliance officer reviewing an AI loan assistant response.\n\n"
@@ -353,6 +380,7 @@ def revise_response(state: QuickLoanState) -> dict:
     return {
         "response":          revised_text,
         "compliance_status": "REVISED",
+        "original_response": draft,
     }
 
 
@@ -452,11 +480,16 @@ def call_compliance_agent(state: QuickLoanState) -> dict:
         "retrieved_docs":    state.get("retrieved_docs", []),
         "specialist":        state.get("specialist", ""),
         "compliance_status": "",
+        "compliance_reason": "",
+        "original_response": "",
         "blocked_reason":    "",
     })
     return {
         "response":          result["response"],
         "compliance_status": result.get("compliance_status", "PASS"),
+        # Audit trail fields for app.py's compliance_audit_log -- see state.py.
+        "compliance_reason": result.get("compliance_reason", ""),
+        "original_response": result.get("original_response", ""),
     }
 
 

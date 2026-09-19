@@ -53,8 +53,13 @@ if not os.environ.get("GROQ_API_KEY"):
     st.stop()
 
 from quickloan.agent import build_graph  # noqa: E402
-from quickloan.config import CHECKPOINT_DB, DB_PATH  # noqa: E402
-from quickloan.emi import calculate_emi_breakdown  # noqa: E402
+from quickloan.config import (  # noqa: E402
+    CHECKPOINT_DB,
+    DB_PATH,
+    GRIEVANCE_OFFICER_CONTACT,
+    RBI_OMBUDSMAN_NOTE,
+)
+from quickloan.emi import calculate_apr, calculate_emi_breakdown  # noqa: E402
 import quickloan.nodes as _nodes        # noqa: E402
 from langgraph.checkpoint.sqlite import SqliteSaver  # noqa: E402
 
@@ -88,6 +93,8 @@ def build_input_state(message: str) -> dict:
         "specialist":        "",
         "retrieved_docs":    [],
         "compliance_status": "",
+        "compliance_reason": "",
+        "original_response": "",
         "blocked_reason":    "",
     }
 
@@ -158,8 +165,8 @@ def is_escalated(result: dict) -> bool:
 def _get_loan_products() -> list[dict]:
     conn = sqlite3.connect(str(DB_PATH))
     rows = conn.execute(
-        "SELECT product_id, product_name, min_tenure_months, max_tenure_months, max_loan_amount "
-        "FROM loan_products ORDER BY product_name"
+        "SELECT product_id, product_name, min_tenure_months, max_tenure_months, "
+        "max_loan_amount, processing_fee_pct FROM loan_products ORDER BY product_name"
     ).fetchall()
     conn.close()
     return [
@@ -169,6 +176,7 @@ def _get_loan_products() -> list[dict]:
             "min_tenure":  r[2],
             "max_tenure":  r[3],
             "max_amount":  r[4],
+            "processing_fee_pct": r[5],
         }
         for r in rows
     ]
@@ -226,6 +234,9 @@ def _emi_calculator_tab() -> None:
     if st.button("Calculate EMI", type="primary", use_container_width=True):
         try:
             breakdown = calculate_emi_breakdown(principal, slab["rate"], int(tenure_months))
+            apr_info  = calculate_apr(
+                principal, slab["rate"], int(tenure_months), product["processing_fee_pct"]
+            )
         except ValueError as e:
             st.error(str(e))
         else:
@@ -233,9 +244,22 @@ def _emi_calculator_tab() -> None:
             m1.metric("Monthly EMI", f"Rs. {breakdown['emi']:,.2f}")
             m2.metric("Total Payment", f"Rs. {breakdown['total_payment']:,.2f}")
             m3.metric("Total Interest", f"Rs. {breakdown['total_interest']:,.2f}")
+
+            # RBI Key Fact Statement (KFS): the all-inclusive APR, not just
+            # the nominal rate, must be shown alongside every quote.
+            m4, m5, m6 = st.columns(3)
+            m4.metric("Processing Fee", f"Rs. {apr_info['processing_fee']:,.2f}")
+            m5.metric("Net Disbursed", f"Rs. {apr_info['net_disbursed']:,.2f}")
+            m6.metric("APR (all-in cost)", f"{apr_info['apr']:.2f}% p.a.")
+
             st.caption(
                 f"{product_name} · {slab_label} · {int(tenure_months)} months · "
                 "Pre-qualification estimate only, subject to final approval."
+            )
+            st.info(
+                "This is a pre-qualification estimate. Before final sign-up you will "
+                "receive a Key Fact Statement (KFS) with the complete APR, all fees, "
+                "and repayment schedule, as required under RBI's Digital Lending Directions."
             )
 
 
@@ -275,6 +299,23 @@ def _ensure_conversations_table(conn: sqlite3.Connection) -> None:
         "  PRIMARY KEY (thread_id, seq)"
         ")"
     )
+    # RBI compliance audit trail. Deliberately NOT touched by
+    # _delete_conversation/_delete_all_conversations -- a regulator needs a
+    # record of what the Compliance Agent flagged and how a human reviewer
+    # disposed of it independent of whether the customer's own chat history
+    # was later cleared from the sidebar.
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS compliance_audit_log ("
+        "  id                 INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  thread_id          TEXT NOT NULL,"
+        "  created_at         TEXT NOT NULL,"
+        "  compliance_status  TEXT NOT NULL,"
+        "  compliance_reason  TEXT,"
+        "  original_response  TEXT,"
+        "  final_response     TEXT,"
+        "  reviewer_action    TEXT NOT NULL"
+        ")"
+    )
     conn.commit()
 
 
@@ -298,13 +339,92 @@ def _record_conversation_start(conn: sqlite3.Connection, thread_id: str, first_m
     conn.commit()
 
 
-def _list_past_conversations(conn: sqlite3.Connection, exclude_thread_id: str) -> list[dict]:
-    rows = conn.execute(
-        "SELECT thread_id, title, created_at FROM conversations "
-        "WHERE thread_id != ? ORDER BY created_at DESC LIMIT 20",
-        (exclude_thread_id,),
-    ).fetchall()
+def _list_past_conversations(
+    conn: sqlite3.Connection, exclude_thread_id: str, search: str = ""
+) -> list[dict]:
+    search = search.strip()
+    if search:
+        rows = conn.execute(
+            "SELECT DISTINCT c.thread_id, c.title, c.created_at FROM conversations c "
+            "LEFT JOIN conversation_messages m ON m.thread_id = c.thread_id "
+            "WHERE c.thread_id != ? AND (c.title LIKE ? OR m.content LIKE ?) "
+            "ORDER BY c.created_at DESC LIMIT 20",
+            (exclude_thread_id, f"%{search}%", f"%{search}%"),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT thread_id, title, created_at FROM conversations "
+            "WHERE thread_id != ? ORDER BY created_at DESC LIMIT 20",
+            (exclude_thread_id,),
+        ).fetchall()
     return [{"thread_id": r[0], "title": r[1], "created_at": r[2]} for r in rows]
+
+
+def _delete_conversation(conn: sqlite3.Connection, thread_id: str) -> None:
+    """Remove a conversation's sidecar rows and its LangGraph checkpoint state.
+
+    Deliberately does NOT touch compliance_audit_log -- see its CREATE TABLE
+    comment in _ensure_conversations_table.
+    """
+    conn.execute("DELETE FROM conversation_messages WHERE thread_id = ?", (thread_id,))
+    conn.execute("DELETE FROM conversations WHERE thread_id = ?", (thread_id,))
+    conn.execute("DELETE FROM checkpoints WHERE thread_id = ?", (thread_id,))
+    conn.execute("DELETE FROM writes WHERE thread_id = ?", (thread_id,))
+    conn.commit()
+
+
+def _delete_all_conversations(conn: sqlite3.Connection, exclude_thread_id: str) -> None:
+    """Delete every past conversation except the currently active thread."""
+    thread_ids = [
+        r[0]
+        for r in conn.execute(
+            "SELECT thread_id FROM conversations WHERE thread_id != ?", (exclude_thread_id,)
+        ).fetchall()
+    ]
+    for thread_id in thread_ids:
+        _delete_conversation(conn, thread_id)
+
+
+def _log_compliance_audit(
+    conn: sqlite3.Connection,
+    thread_id: str,
+    compliance_status: str,
+    compliance_reason: str,
+    original_response: str,
+    final_response: str,
+    reviewer_action: str,
+) -> None:
+    """Append one row to the RBI compliance audit trail. Every PASS is logged
+    too (reviewer_action='auto') so the log is a complete record of every
+    compliance-checked turn, not just the ones a human touched."""
+    conn.execute(
+        "INSERT INTO compliance_audit_log "
+        "(thread_id, created_at, compliance_status, compliance_reason, "
+        " original_response, final_response, reviewer_action) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            thread_id,
+            datetime.now(timezone.utc).isoformat(),
+            compliance_status,
+            compliance_reason,
+            original_response,
+            final_response,
+            reviewer_action,
+        ),
+    )
+    conn.commit()
+
+
+def _recent_compliance_audit(conn: sqlite3.Connection, limit: int = 20) -> list[dict]:
+    rows = conn.execute(
+        "SELECT created_at, compliance_status, compliance_reason, reviewer_action "
+        "FROM compliance_audit_log ORDER BY id DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    return [
+        {"created_at": r[0], "compliance_status": r[1], "compliance_reason": r[2], "reviewer_action": r[3]}
+        for r in rows
+    ]
 
 
 def _load_conversation(thread_id: str) -> None:
@@ -354,14 +474,32 @@ def _sidebar() -> None:
 
         st.divider()
         st.subheader("Past Conversations")
-        past = _list_past_conversations(st.session_state.db_conn, st.session_state.thread_id)
+
+        search = st.text_input(
+            "Search conversations",
+            key="conv_search",
+            placeholder="Search by title or message…",
+            label_visibility="collapsed",
+        )
+        past = _list_past_conversations(st.session_state.db_conn, st.session_state.thread_id, search)
+
         if not past:
-            st.caption("No past conversations yet.")
+            st.caption("No matching conversations." if search else "No past conversations yet.")
         else:
             for conv in past:
                 label = conv["title"] or "(untitled)"
-                if st.button(f"💬 {label}", key=f"conv_{conv['thread_id']}", use_container_width=True):
+                col_load, col_del = st.columns([5, 1])
+                if col_load.button(f"💬 {label}", key=f"conv_{conv['thread_id']}", use_container_width=True):
                     _load_conversation(conv["thread_id"])
+                    st.rerun()
+                if col_del.button("🗑️", key=f"del_{conv['thread_id']}", help="Delete this conversation"):
+                    _delete_conversation(st.session_state.db_conn, conv["thread_id"])
+                    st.rerun()
+
+            with st.popover("🗑️ Delete all conversations", use_container_width=True):
+                st.warning("This permanently deletes every past conversation. This can't be undone.")
+                if st.button("Confirm delete all", type="primary", use_container_width=True):
+                    _delete_all_conversations(st.session_state.db_conn, st.session_state.thread_id)
                     st.rerun()
 
         st.divider()
@@ -374,6 +512,24 @@ def _sidebar() -> None:
             "- **Compliance Agent** — RBI rules check\n"
             "- **Human-in-the-Loop** — reviews revisions"
         )
+
+        st.divider()
+        st.subheader("Regulatory & Grievance Info")
+        st.caption(
+            f"**{GRIEVANCE_OFFICER_CONTACT}**\n\n{RBI_OMBUDSMAN_NOTE}"
+        )
+        with st.expander("🔍 Compliance Audit Log"):
+            audit_rows = _recent_compliance_audit(st.session_state.db_conn)
+            if not audit_rows:
+                st.caption("No compliance events logged yet.")
+            else:
+                for row in audit_rows:
+                    icon = "✅" if row["compliance_status"] == "PASS" else "⚠️"
+                    st.caption(
+                        f"{icon} {row['created_at'][:19]} · {row['compliance_status']} · "
+                        f"reviewer: {row['reviewer_action']}"
+                        + (f" · {row['compliance_reason']}" if row["compliance_reason"] else "")
+                    )
 
         st.divider()
         st.subheader("Demo settings")
@@ -424,9 +580,19 @@ def _handle_hitl() -> bool:
             st.session_state.db_conn, st.session_state.thread_id,
             len(st.session_state.messages) - 1, "assistant", edited, pending["route_label"],
         )
+        _log_compliance_audit(
+            st.session_state.db_conn, st.session_state.thread_id,
+            "REVISED", pending.get("compliance_reason", ""), pending.get("original_response", ""),
+            edited, "approved_edited" if edited != pending["response"] else "approved",
+        )
         del st.session_state.pending_hitl
         st.rerun()
     elif discarded:
+        _log_compliance_audit(
+            st.session_state.db_conn, st.session_state.thread_id,
+            "REVISED", pending.get("compliance_reason", ""), pending.get("original_response", ""),
+            "", "discarded",
+        )
         del st.session_state.pending_hitl
         st.rerun()
 
@@ -495,8 +661,10 @@ def main() -> None:
                 elif needs_human_review(result):
                     placeholder.empty()
                     st.session_state.pending_hitl = {
-                        "response":    result["response"],
-                        "route_label": route_label,
+                        "response":           result["response"],
+                        "route_label":        route_label,
+                        "compliance_reason":  result.get("compliance_reason", ""),
+                        "original_response":  result.get("original_response", ""),
                     }
                     st.rerun()
                 else:
@@ -512,6 +680,11 @@ def main() -> None:
                         st.session_state.db_conn, st.session_state.thread_id,
                         len(st.session_state.messages) - 1, "assistant", response, route_label,
                     )
+                    if result.get("compliance_status", "") == "PASS":
+                        _log_compliance_audit(
+                            st.session_state.db_conn, st.session_state.thread_id,
+                            "PASS", "", "", response, "auto",
+                        )
 
     with tab_emi:
         _emi_calculator_tab()

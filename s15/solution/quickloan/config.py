@@ -14,8 +14,19 @@ if not GROQ_API_KEY:
 # If one hits Groq rate limits mid-session, comment it out and uncomment the other.
 MODEL_NAME            = "openai/gpt-oss-120b"  # primary: higher daily token limit
 # MODEL_NAME          = "openai/gpt-oss-20b"   # fallback: 200k tokens/day ceiling
-CLASSIFIER_MODEL      = "groq/compound-mini"
-CLASSIFIER_MAX_TOKENS = 10
+#
+# CLASSIFIER_MODEL: groq/compound-mini was retired by Groq (calls started
+# failing with a 404 model_not_found) -- every classify() call silently fell
+# back to query_type="RATES" (see the except clause in nodes.py:classify),
+# which is why e.g. repayment-plan/strategy questions were being routed to
+# the Rates Agent instead of Policy/Escalate. openai/gpt-oss-20b is a
+# reasoning model: at the old CLASSIFIER_MAX_TOKENS=10 it burned its entire
+# budget on hidden reasoning tokens and returned empty content (finish_reason
+# "length"). reasoning_effort="low" (set on classifier_llm in tools.py) plus
+# a larger max_tokens fixes that -- verified across RATES/POLICY/COMPLEX/
+# OUT_OF_SCOPE test queries with room to spare (reasoning_tokens 3-46 of 100).
+CLASSIFIER_MODEL      = "openai/gpt-oss-20b"
+CLASSIFIER_MAX_TOKENS = 100
 TEMPERATURE = 0.3
 MAX_TOKENS  = 300
 

@@ -35,6 +35,7 @@ classifier_llm = ChatGroq(
     model=CLASSIFIER_MODEL,
     temperature=0.0,
     max_tokens=CLASSIFIER_MAX_TOKENS,
+    reasoning_effort="low",  # minimizes hidden reasoning tokens for a one-word answer
 )
 
 # ---------------------------------------------------------------------------

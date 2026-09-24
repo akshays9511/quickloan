@@ -21,3 +21,4 @@ mcp==1.27.2
 langchain-mcp-adapters==0.3.1
 streamlit==1.58.0
 httpx>=0.28.0,<1.0
+bcrypt>=4.0,<6.0
